@@ -1,0 +1,117 @@
+name: puppytalk
+
+services:
+  # 1. Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - puppytalk-network
+
+  # 2. Database (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-puppytalk}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - puppytalk-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-puppytalk}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # 3. Cache
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes #데이터 영구저장 활성화
+    volumes:
+      - redis_data:/data
+    networks:
+      - puppytalk-network
+
+  # 4. Object Storage (S3-compatible, for dev/staging; prod에서는 AWS S3 사용)
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # 백엔드 API 통신용
+      - "9001:9001" # 개발자 관리 화면 접속용
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    networks:
+      - puppytalk-network
+
+  # 5. Backend (FastAPI + Alembic Auto Migration)
+  backend:
+    image: kyjness/puppytalk-be:latest
+    build:
+      context: ../2-kyjness-community-be
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: >
+      sh -c "alembic upgrade head && 
+             exec gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - puppytalk-network
+    # 호스트 포트 미노출: Nginx 리버스 프록시를 통해서만 접근
+
+  # 6. Frontend
+  frontend:
+    image: kyjness/puppytalk-fe:latest
+    build:
+      context: ../2-kyjness-community-fe
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /v1 
+    container_name: frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # 호스트 포트 미노출: Nginx 리버스 프록시를 통해서만 접근
+    networks:
+      - puppytalk-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+
+networks:
+  puppytalk-network:
+    driver: bridge
