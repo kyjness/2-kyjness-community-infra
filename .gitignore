@@ -8,3 +8,19 @@
 
 # 기타 로컬 전용 파일
 *.local
+
+# Terraform 변수 (db_master_password 등 — 커밋 금지)
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Terraform state/캐시/플랜 (커밋 금지)
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+*.tfstate.backup
+.terraform/

@@ -30,11 +30,11 @@ services:
     networks:
       - puppytalk-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
+      start_period: 10s
 
   # 3. Cache
   redis:
@@ -48,6 +48,11 @@ services:
       - redis_data:/data
     networks:
       - puppytalk-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   # 4. Object Storage (S3-compatible, for dev/staging; prod에서는 AWS S3 사용)
   minio:
@@ -82,7 +87,7 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     networks:
       - puppytalk-network
     # 호스트 포트 미노출: Nginx 리버스 프록시를 통해서만 접근
