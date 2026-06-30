@@ -2,6 +2,7 @@
 resource "aws_ecr_repository" "be" {
   name                 = "${var.project_name}-be"
   image_tag_mutability = "MUTABLE" # 같은 태그(latest)로 덮어쓰기 허용
+  force_delete         = true      # 리포지토리 삭제 시 남아있는 이미지도 함께 삭제
 
   image_scanning_configuration {
     scan_on_push = true # 이미지 올릴 때 보안 취약점 자동 검사

@@ -1,6 +1,7 @@
 # 프론트엔드 호스팅용 S3 버킷
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.project_name}-frontend-bucket"
+  bucket        = "${var.project_name}-frontend-bucket"
+  force_destroy = true
 }
 
 # S3 퍼블릭 접근 원천 차단

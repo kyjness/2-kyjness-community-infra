@@ -87,4 +87,9 @@ resource "aws_ecs_service" "be" {
     aws_lb_listener.be_http,
     aws_lb_listener.be_https,
   ]
+
+  # Application Auto Scaling(ecs_autoscaling.tf)이 desired_count를 조절하므로 Terraform은 이후 갱신 무시
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
 }

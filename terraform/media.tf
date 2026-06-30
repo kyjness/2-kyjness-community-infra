@@ -1,6 +1,7 @@
 # 미디어 파일 저장용 S3 버킷
 resource "aws_s3_bucket" "media" {
-  bucket = "${var.project_name}-media-bucket"
+  bucket        = "${var.project_name}-media-bucket"
+  force_destroy = true
 }
 
 # 미디어 버킷 퍼블릭 접근 차단 (보안 강화)

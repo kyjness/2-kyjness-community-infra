@@ -53,8 +53,21 @@ variable "github_fe_oidc_subject" {
   description = "token.actions.githubusercontent.com:sub StringLike 패턴 (브랜치·환경 제한 시 :ref:refs/heads/main 등으로 좁힘)"
 }
 
-variable "eks_cluster_version" {
-  type        = string
-  default     = "1.31"
-  description = "EKS Kubernetes 버전 (puppytalk-eks-seoul)"
+# --- ECS 서비스 오토스케일 (Application Auto Scaling) ---
+variable "ecs_service_min_capacity" {
+  type        = number
+  default     = 1
+  description = "ECS be 서비스 desired_count 하한"
+}
+
+variable "ecs_service_max_capacity" {
+  type        = number
+  default     = 10
+  description = "ECS be 서비스 desired_count 상한 (Fargate 계정 한도 내에서 조정)"
+}
+
+variable "ecs_autoscaling_cpu_target" {
+  type        = number
+  default     = 70
+  description = "ECS 서비스 CPU 목표 추적 비율(%)"
 }

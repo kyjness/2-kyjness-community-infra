@@ -1,3 +1,5 @@
+# Target 전용: Argo Rollouts 블루/그린. 활성화 시 kustomization에 본 파일·services-rollout-bluegreen.yaml.bak 를
+# 넣고 deployment.yaml·service.yaml·hpa.yaml 과 중복되지 않게 정리할 것.
 # -----------------------------------------------------------------------------
 # 이 Rollout을 적용·조작하려면 클러스터에 Argo Rollouts Controller가 설치되어 있어야 합니다.
 #   - 공식 매니페스트: kubectl create namespace argo-rollouts

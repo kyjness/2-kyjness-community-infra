@@ -1,5 +1,5 @@
 output "ecr_be_repository_url" {
-  description = "백엔드 ECR 리포지토리 URL (k8s/overlays/prod-seoul Kustomize images.newName에 사용, 태그 제외)"
+  description = "백엔드 ECR 리포지토리 URL (Jenkins/ECS 배포·Target 시 k8s.bak 참고)"
   value       = aws_ecr_repository.be.repository_url
 }
 
@@ -21,24 +21,4 @@ output "db_server_private_ip" {
 output "github_actions_fe_deploy_role_arn" {
   description = "FE GitHub Actions OIDC용 IAM Role ARN (configure-aws-credentials role-to-assume)"
   value       = aws_iam_role.fe_github_actions.arn
-}
-
-output "eks_cluster_name" {
-  description = "EKS 클러스터 이름 (puppytalk-eks-seoul)"
-  value       = module.eks.cluster_name
-}
-
-output "eks_cluster_endpoint" {
-  description = "EKS Kubernetes API 엔드포인트"
-  value       = module.eks.cluster_endpoint
-}
-
-output "eks_cluster_oidc_issuer_url" {
-  description = "IRSA 등용 OIDC Issuer URL"
-  value       = module.eks.cluster_oidc_issuer_url
-}
-
-output "eks_cluster_arn" {
-  description = "EKS 클러스터 ARN"
-  value       = module.eks.cluster_arn
 }

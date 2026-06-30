@@ -1,3 +1,4 @@
+# [Target 전용 · Current 비로드] 확장자를 .tf 로 바꿀 때 vpc_private_eks.tf.bak·eks_autoscaler_irsa.tf.bak·rds.tf.bak·variables/outputs 의 EKS·RDS 블록을 함께 복구할 것.
 # EKS: terraform-aws-modules/eks/aws — 클러스터·관리형 노드 그룹 전용 IAM은 모듈이 생성
 # (iam.tf의 ECS/Jenkins/OIDC 역할 이름·신뢰 주체와 겹치지 않음).
 
@@ -34,11 +35,16 @@ module "eks" {
     puppytalk_main = {
       name         = "puppytalk-mng"
       subnet_ids   = [aws_subnet.private_eks_1.id, aws_subnet.private_eks_2.id]
-      min_size     = 2
-      max_size     = 2
-      desired_size = 2
+      min_size     = var.eks_node_min_size
+      max_size     = var.eks_node_max_size
+      desired_size = var.eks_node_desired_size
 
       instance_types = ["t3.medium"]
+
+      tags = {
+        "k8s.io/cluster-autoscaler/enabled"             = "true"
+        "k8s.io/cluster-autoscaler/puppytalk-eks-seoul" = "owned"
+      }
     }
   }
 

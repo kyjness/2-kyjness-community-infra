@@ -3,8 +3,9 @@
 **PuppyTalk** 커뮤니티용 인프라 레포입니다.
 
 - **로컬 개발**: 저장소 **루트**의 `docker-compose.local.yml` + `nginx/default.local.conf` + `.env.local`.
-- **AWS 프로비저닝**: **`terraform/`** — VPC·ALB·ECS Fargate(백엔드)·ECR·EC2(PostgreSQL·Redis)·S3·CloudFront·Route53·ACM(us-east-1)·SNS·Jenkins EC2·EKS 등 (`*.tf`).
-- **Kubernetes(EKS 타깃)**: **`k8s/`** — Kustomize 베이스·`prod-seoul` 오버레이(Argo Rollouts Blue/Green 등). Terraform 출력(`ecr_be_repository_url`, `db_server_private_ip` 등)과 맞춰 배포합니다.
+- **AWS 프로비저닝(Current)**: **`terraform/*.tf`** — VPC·ALB·ECS Fargate·ECR·EC2 DB·S3·CloudFront·Route53·ACM·SNS·Jenkins 등.
+- **Target(EKS·RDS·NAT 등)**: **`terraform/*.tf.bak`** (`eks.tf.bak`, `vpc_private_eks.tf.bak`, `rds.tf.bak` 등) — Current `apply`에는 포함되지 않음. 복구 시 확장자·`variables`/`outputs`의 EKS·RDS 블록을 함께 되살릴 것.
+- **Kubernetes(EKS 타깃)**: **`k8s.bak/`** — Kustomize·HPA·Rollout(`.bak`). Target 전환 시 디렉터리명을 `k8s/`로 되돌리고 Terraform Target 리소스와 맞춰 배포.
 - **`ec2/`, `lambda/`, `ecs/`** — 과거/참고용 Compose·태스크 정의·배포 YAML **기록** (`ecs/task-definition.json`은 Terraform `ecs.tf`의 태스크 정의와 목적이 겹칠 수 있음).
 
 - **백엔드**: [PuppyTalk Backend](https://github.com/kyjness/2-kyjness-community-be)
@@ -17,8 +18,8 @@
 | 경로 | 역할 |
 |------|------|
 | 루트 (`docker-compose.local.yml`, `nginx/default.local.conf`, `.env.local`) | **로컬 전체 스택** 실행용 |
-| `terraform/` | **AWS IaC** (`provider.tf`, `vpc.tf`, `alb.tf`, `ecs.tf`, `ec2_db.tf`, `jenkins.tf`, `cloudfront.tf`, `dns.tf`, `acm.tf`, `ecr.tf`, `frontend.tf`, `media.tf`, `iam.tf`, `eks.tf` 등) |
-| `k8s/` | **EKS 배포 매니페스트** (Kustomize `base/`·`overlays/prod-seoul`, Argo Rollouts) |
+| `terraform/` | **AWS IaC (Current: `*.tf`)** + **Target 보관: `*.tf.bak`** (EKS, 프라이빗 VPC·NAT, RDS 등) |
+| `k8s.bak/` | **EKS 배포 매니페스트 (Target 보관)** — 활성화 시 `k8s/`로 이름 변경 |
 | `ec2/` | EC2 시절 Compose·Nginx·배포 워크플로 참고 (`docker-compose.yml`, `default.conf`, `deploy.yml`) |
 | `lambda/` | Lambda 관련 Dockerfile·compose·배포 YAML 참고 |
 | `ecs/` | ECS Appspec·태스크 정의 JSON 참고 (`appspec.yml`, `task-definition.json`) |

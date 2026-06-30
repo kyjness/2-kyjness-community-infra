@@ -1,3 +1,4 @@
+# [Target 전용 · Current 비로드] EKS·RDS(Target) 서브넷/NAT. 복구 시 eks.tf.bak 등과 함께 .tf 로 변경.
 # EKS 워커(Managed Node Group)용 프라이빗 서브넷 + 단일 NAT(비용 절감).
 # 기존 vpc.tf 퍼블릭 서브넷과 충돌하지 않는 CIDR(10.0.10.0/24, 10.0.11.0/24) 사용.
 
