@@ -24,3 +24,6 @@ crash.*.log
 *.tfplan
 *.tfstate.backup
 .terraform/
+
+# AI 작업 지침 (로컬 전용, 미공개)
+CLAUDE.md
