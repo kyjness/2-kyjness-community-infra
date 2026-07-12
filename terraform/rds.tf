@@ -51,11 +51,15 @@ resource "aws_db_instance" "main" {
   publicly_accessible    = false
   multi_az               = var.rds_multi_az # 대기 인스턴스 자동 페일오버(HA)
 
-  backup_retention_period      = var.rds_backup_retention_days
-  performance_insights_enabled = true
+  backup_retention_period = var.rds_backup_retention_days
+  # Performance Insights는 버스터블 micro 클래스(db.t3.micro 등)에서 미지원 → 기본 off,
+  # 클래스 상향 시 var로 활성화. (기본 인스턴스가 micro라 apply 에러 방지)
+  performance_insights_enabled = var.rds_performance_insights_enabled
   auto_minor_version_upgrade   = true
   deletion_protection          = var.rds_deletion_protection
   skip_final_snapshot          = var.rds_skip_final_snapshot
+  # skip_final_snapshot=false(운영)일 때 필요 — 삭제 시 최종 스냅샷 이름
+  final_snapshot_identifier = "${var.project_name}-postgres-final"
 
   tags = { Name = "${var.project_name}-postgres" }
 }

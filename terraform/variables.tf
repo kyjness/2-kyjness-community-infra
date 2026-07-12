@@ -82,6 +82,12 @@ variable "rds_deletion_protection" {
   description = "삭제 보호 (운영 적용 시 true 권장)"
 }
 
+variable "rds_performance_insights_enabled" {
+  type        = bool
+  default     = false
+  description = "Performance Insights. db.t3.micro 등 버스터블 micro는 미지원이라 기본 off — 클래스 상향 시 true"
+}
+
 variable "rds_skip_final_snapshot" {
   type        = bool
   default     = true
