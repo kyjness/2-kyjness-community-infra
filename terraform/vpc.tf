@@ -66,3 +66,42 @@ resource "aws_route_table_association" "public_2" {
   subnet_id      = aws_subnet.public_2.id
   route_table_id = aws_route_table.public.id
 }
+
+# -----------------------------------------------------------------------------
+# 프라이빗 서브넷 — 3-tier: app(ECS 태스크, NAT 경유 egress) / data(RDS·Redis, 인터넷 격리).
+# NAT·프라이빗 라우팅은 nat.tf. (퍼블릭 10.0.1/2, 프라이빗 app 10.0.11/12, data 10.0.21/22)
+# -----------------------------------------------------------------------------
+
+# App tier — ECS Fargate 태스크 (ALB 뒤, 퍼블릭 IP 없음)
+resource "aws_subnet" "private_app_1" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.11.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = { Name = "${var.project_name}-private-app-1" }
+}
+
+resource "aws_subnet" "private_app_2" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.12.0/24"
+  availability_zone = "${var.region}c"
+
+  tags = { Name = "${var.project_name}-private-app-2" }
+}
+
+# Data tier — RDS·ElastiCache (인터넷 경로 없음, VPC 내부에서만 접근)
+resource "aws_subnet" "private_data_1" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.21.0/24"
+  availability_zone = "${var.region}a"
+
+  tags = { Name = "${var.project_name}-private-data-1" }
+}
+
+resource "aws_subnet" "private_data_2" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.22.0/24"
+  availability_zone = "${var.region}c"
+
+  tags = { Name = "${var.project_name}-private-data-2" }
+}
