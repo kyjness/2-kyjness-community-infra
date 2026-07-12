@@ -86,6 +86,10 @@ flowchart TB
 > 이전에는 Jenkins EC2 인스턴스 프로파일이 BE 배포를 담당했으나, 상시 과금·이중 CD 경로를
 > 없애고 **GitHub OIDC 한 갈래로 일원화**했습니다. 각 롤의 `sub` 조건으로 해당 레포 워크플로만
 > Assume할 수 있습니다(`github_fe_oidc_subject`·`github_be_oidc_subject`).
+>
+> **참고**: `be_github_actions` 롤(ECR push + ECS 배포)은 이 AWS 스택을 `apply` 했을 때
+> 활성화되는 CD 경로입니다. 무료 티어 라이브 데모 트랙에서는 BE 이미지를 GHCR로 빌드해
+> Fly에 배포하므로, 이 롤은 AWS 스택을 적용하기 전까지는 휴면 상태입니다.
 
 ### 다음 단계 설계 (미구현, 서술만)
 
@@ -164,6 +168,10 @@ docker compose -f docker-compose.local.yml down -v     # 볼륨(DB·Redis·MinIO
 > `validate`/`plan`까지만 실행하세요. 공개 라이브 데모는 무료 티어 트랙(be/fe 레포)을 사용합니다.
 
 **AWS Provider `>= 5.40, < 6.0`**, 상태 파일은 로컬 `terraform.tfstate`(`.gitignore`).
+
+> 🔐 `ssm.tf`가 시크릿 값(`jwt_secret_key`·`db_master_password`)을 관리하므로, 그 값은
+> **`terraform.tfstate`에 평문으로 저장**됩니다. 상태 파일을 절대 커밋하지 말고(현재 `.gitignore`),
+> 원격 상태로 옮길 때는 **암호화된 S3 백엔드(SSE) + 접근 제어**를 전제로 하세요.
 
 ### 사전 준비
 
