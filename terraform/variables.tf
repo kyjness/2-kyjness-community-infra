@@ -14,11 +14,17 @@ variable "domain_name" {
   default = "puppytalk.shop"
 }
 
-# EC2 user_data에서 postgres 비밀번호로 사용
+# EC2 user_data에서 postgres 비밀번호로 사용 + SSM SecureString(ssm.tf)으로 ECS에 주입
 variable "db_master_password" {
   type        = string
   sensitive   = true
   description = "PostgreSQL postgres 사용자 비밀번호"
+}
+
+variable "jwt_secret_key" {
+  type        = string
+  sensitive   = true
+  description = "백엔드 JWT 서명 키. 32자 이상 랜덤 문자열 (SSM SecureString으로 ECS에 주입)"
 }
 
 # GitHub Actions OIDC: IAM Role Trust의 sub 클레임 (해당 레포 워크플로만 Assume 허용)

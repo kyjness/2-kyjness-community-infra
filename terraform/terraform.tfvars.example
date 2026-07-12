@@ -4,6 +4,8 @@ project_name       = "puppytalk"
 region             = "ap-northeast-2"
 domain_name        = "puppytalk.shop"
 
+# 시크릿: 실제 값은 복사본 terraform.tfvars(gitignore)에만. Terraform이 SSM SecureString으로 주입.
 db_master_password = ""
+jwt_secret_key     = "" # 32자 이상 랜덤 문자열 (백엔드 프로덕션 가드 통과 조건)
 
 # Terraform: AWS CLI와 동일하게 셸에 export (AK/SK/SESSION_TOKEN). tfvars에 넣지 않음.

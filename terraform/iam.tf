@@ -45,6 +45,27 @@ resource "aws_iam_role_policy" "ecs_task_execution_logs_policy" {
   })
 }
 
+# ECS가 태스크 기동 시 SSM SecureString 시크릿(ssm.tf)을 주입하려면 execution_role에 조회 권한 필요.
+# 지정 파라미터 ARN만 허용 (기본 AWS 관리 키 → 별도 kms:Decrypt 불필요).
+resource "aws_iam_role_policy" "ecs_task_execution_ssm_secrets" {
+  name = "${var.project_name}-ecs-ssm-secrets"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["ssm:GetParameters"]
+        Resource = [
+          aws_ssm_parameter.jwt_secret.arn,
+          aws_ssm_parameter.db_password.arn,
+        ]
+      }
+    ]
+  })
+}
+
 # 백엔드 애플리케이션 전용 Task Role (S3 미디어 버킷만 허용 — Resource 와일드카드 금지)
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.project_name}-ecs-task-role"

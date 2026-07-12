@@ -24,15 +24,14 @@ resource "aws_ecs_task_definition" "be" {
     }]
 
     environment = [
-      # DB 및 Redis 접속 정보
+      # DB 및 Redis 접속 정보 (비밀번호는 secrets로 분리)
       { name = "DB_HOST", value = aws_instance.db_server.private_ip },
       { name = "DB_PORT", value = "5432" },
       { name = "DB_USER", value = "postgres" },
-      { name = "DB_PASSWORD", value = var.db_master_password },
       { name = "DB_NAME", value = "puppytalk" },
       { name = "REDIS_URL", value = "redis://${aws_instance.db_server.private_ip}:6379/0" },
 
-      # S3 관련 설정 (에러 해결 핵심 포인트!)
+      # S3 관련 설정
       { name = "STORAGE_BACKEND", value = "s3" },
       { name = "S3_BUCKET_NAME", value = aws_s3_bucket.media.id },
       { name = "AWS_REGION", value = var.region },
@@ -40,10 +39,15 @@ resource "aws_ecs_task_definition" "be" {
       # 이미지 조회 주소를 CloudFront 도메인으로 변경
       { name = "S3_PUBLIC_BASE_URL", value = "https://${var.domain_name}/media" },
 
-      # 💡 [추가] 보안 및 도메인 설정
+      # 보안 및 도메인 설정
       { name = "CORS_ORIGINS", value = "https://${var.domain_name},http://localhost:5173" },
-      { name = "JWT_SECRET_KEY", value = "your-very-secret-key-change-me" }, # 실무에선 시크릿 매니저 권장
       { name = "SNS_TOPIC_ARN", value = aws_sns_topic.notifications.arn },
+    ]
+
+    # 시크릿은 SSM SecureString에서 주입 — 태스크 정의에 평문 미노출 (ssm.tf)
+    secrets = [
+      { name = "DB_PASSWORD", valueFrom = aws_ssm_parameter.db_password.arn },
+      { name = "JWT_SECRET_KEY", valueFrom = aws_ssm_parameter.jwt_secret.arn },
     ]
 
     logConfiguration = {
