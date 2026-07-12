@@ -94,6 +94,25 @@ variable "rds_skip_final_snapshot" {
   description = "삭제 시 최종 스냅샷 생략 여부 (운영은 false 권장)"
 }
 
+# --- ElastiCache (관리형 Redis, elasticache.tf) ---
+variable "elasticache_engine_version" {
+  type        = string
+  default     = "7.1"
+  description = "ElastiCache Redis 엔진 버전"
+}
+
+variable "elasticache_node_type" {
+  type        = string
+  default     = "cache.t3.micro"
+  description = "ElastiCache 노드 타입"
+}
+
+variable "elasticache_num_nodes" {
+  type        = number
+  default     = 2
+  description = "노드 수 (primary + replica). 자동 페일오버에는 2 이상 필요"
+}
+
 # GitHub Actions OIDC: IAM Role Trust의 sub 클레임 (해당 레포 워크플로만 Assume 허용)
 variable "github_fe_oidc_subject" {
   type        = string
