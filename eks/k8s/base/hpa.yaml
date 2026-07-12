@@ -1,0 +1,21 @@
+# metrics-server 설치 전제 (EKS 애드온 등).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: puppytalk-api
+  labels:
+    app.kubernetes.io/name: puppytalk-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: puppytalk-api
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

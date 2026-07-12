@@ -1,0 +1,43 @@
+# Argo Rollouts 블루/그린 — base의 Deployment 대안(advanced 배포 전략).
+# 전제: 클러스터에 Argo Rollouts Controller 설치.
+#   kubectl create namespace argo-rollouts
+#   kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+# Controller 미설치 시 Rollout은 Reconcile되지 않음.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: puppytalk-api
+  labels:
+    app.kubernetes.io/name: puppytalk-api
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: puppytalk-api
+  template:
+    metadata:
+      labels:
+        app: puppytalk-api
+    spec:
+      containers:
+        - name: api
+          image: puppytalk-be:latest # 오버레이 images에서 GHCR로 치환
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+  strategy:
+    blueGreen:
+      activeService: puppytalk-api-active
+      previewService: puppytalk-api-preview
+      autoPromotionEnabled: false # 수동 승격(검증 후 promote)
+      scaleDownDelaySeconds: 30

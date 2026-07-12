@@ -1,0 +1,39 @@
+# 기본 워크로드: 롤링 배포. 블루/그린(Argo Rollouts)은 ../../rollout-bluegreen 참고.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: puppytalk-api
+  labels:
+    app.kubernetes.io/name: puppytalk-api
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: puppytalk-api
+  template:
+    metadata:
+      labels:
+        app: puppytalk-api
+    spec:
+      containers:
+        - name: api
+          image: puppytalk-be:latest # 오버레이 kustomization images에서 GHCR로 치환
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi

@@ -1,0 +1,42 @@
+# -----------------------------------------------------------------------------
+# 서울(ap-northeast-2) 프로덕션 오버레이.
+# 데이터 계층은 terraform/(ECS 스택)의 RDS·ElastiCache를 공유 — 아래 값을 output으로 채운다:
+#   DB_HOST   ← cd ../../../../terraform && terraform output -raw rds_address
+#   REDIS_URL ← redis://<terraform output -raw redis_primary_endpoint>:6379/0
+# 시크릿(DB_PASSWORD·JWT_SECRET_KEY)은 별도 Secret(예: External Secrets로 SSM 연동) 전제.
+#
+# 적용: kubectl create namespace puppytalk && kubectl apply -k .
+# Cluster Autoscaler: terraform output cluster_autoscaler_irsa_role_arn → SA 주입
+# -----------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: puppytalk
+
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: puppytalk-prod-seoul-env
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - AWS_REGION=ap-northeast-2
+      - STORAGE_BACKEND=s3
+      - S3_BUCKET_NAME=puppytalk-media-bucket
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_NAME=puppytalk
+      - DB_HOST=REPLACE_WITH_terraform_output_rds_address
+      - REDIS_URL=redis://REPLACE_WITH_terraform_output_redis_primary_endpoint:6379/0
+
+patches:
+  - path: patch-deployment-envfrom.json
+    target:
+      kind: Deployment
+      name: puppytalk-api
+
+images:
+  - name: puppytalk-be
+    newName: ghcr.io/kyjness/puppytalk-be
+    newTag: latest
