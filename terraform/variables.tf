@@ -33,6 +33,67 @@ variable "jwt_secret_key" {
   description = "백엔드 JWT 서명 키. 32자 이상 랜덤 문자열 (SSM SecureString으로 ECS에 주입)"
 }
 
+# --- RDS (관리형 PostgreSQL, rds.tf) ---
+variable "rds_engine_version" {
+  type        = string
+  default     = "15.7"
+  description = "RDS PostgreSQL 엔진 버전"
+}
+
+variable "rds_instance_class" {
+  type        = string
+  default     = "db.t3.micro"
+  description = "RDS 인스턴스 클래스"
+}
+
+variable "rds_allocated_storage" {
+  type        = number
+  default     = 20
+  description = "초기 스토리지(GB)"
+}
+
+variable "rds_max_allocated_storage" {
+  type        = number
+  default     = 100
+  description = "스토리지 오토스케일 상한(GB)"
+}
+
+variable "rds_multi_az" {
+  type        = bool
+  default     = true
+  description = "Multi-AZ 대기 인스턴스(자동 페일오버)"
+}
+
+variable "rds_backup_retention_days" {
+  type        = number
+  default     = 7
+  description = "자동 백업 보관 일수"
+}
+
+variable "rds_database_name" {
+  type        = string
+  default     = "puppytalk"
+  description = "초기 생성 DB 이름"
+}
+
+variable "rds_master_username" {
+  type        = string
+  default     = "postgres"
+  description = "RDS 마스터 사용자"
+}
+
+variable "rds_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "삭제 보호 (운영 적용 시 true 권장)"
+}
+
+variable "rds_skip_final_snapshot" {
+  type        = bool
+  default     = true
+  description = "삭제 시 최종 스냅샷 생략 여부 (운영은 false 권장)"
+}
+
 # GitHub Actions OIDC: IAM Role Trust의 sub 클레임 (해당 레포 워크플로만 Assume 허용)
 variable "github_fe_oidc_subject" {
   type        = string
