@@ -22,3 +22,8 @@ output "github_actions_fe_deploy_role_arn" {
   description = "FE GitHub Actions OIDC용 IAM Role ARN (configure-aws-credentials role-to-assume)"
   value       = aws_iam_role.fe_github_actions.arn
 }
+
+output "github_actions_be_deploy_role_arn" {
+  description = "BE GitHub Actions OIDC용 IAM Role ARN (ECR push·ECS 배포 role-to-assume)"
+  value       = aws_iam_role.be_github_actions.arn
+}

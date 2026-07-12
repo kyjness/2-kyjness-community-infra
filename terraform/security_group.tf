@@ -91,32 +91,3 @@ resource "aws_security_group" "db_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
-# 젠킨스 서버 (8080, 22)
-resource "aws_security_group" "jenkins_sg" {
-  name   = "${var.project_name}-jenkins-sg"
-  vpc_id = aws_vpc.main.id
-
-  # 젠킨스 웹 접속 포트
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # SSH 접속 통로
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # 운영 시 관리자 IP로 제한 권장
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}

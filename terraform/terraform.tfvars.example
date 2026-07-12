@@ -7,7 +7,3 @@ domain_name        = "puppytalk.shop"
 db_master_password = ""
 
 # Terraform: AWS CLI와 동일하게 셸에 export (AK/SK/SESSION_TOKEN). tfvars에 넣지 않음.
-
-# Jenkins EC2 — 필수 (SSH 키 페어는 ec2_db.tf에서 ~/.ssh/id_rsa.pub 로 생성)
-jenkins_casc_password  = "JCasC-로컬-로그인-비밀번호"
-jenkins_github_token   = "ghp_..." # Jenkins credential id: github-token
