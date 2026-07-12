@@ -76,12 +76,16 @@ resource "aws_security_group" "db_sg" {
     security_groups = [aws_security_group.ecs_sg.id] # ECS 컨테이너만 접속 가능
   }
 
-  # SSH (22) - 관리를 위해 내 IP에서만 접속 허용 (보안을 위해 필요)
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # 나중에 본인 IP로 제한하는 것을 추천합니다!
+  # SSH (22) - 기본은 미개방. 관리가 필요하면 var.ssh_admin_cidrs에 관리자 IP/32만 지정.
+  dynamic "ingress" {
+    for_each = length(var.ssh_admin_cidrs) > 0 ? [1] : []
+    content {
+      description = "SSH admin access"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = var.ssh_admin_cidrs
+    }
   }
 
   egress {

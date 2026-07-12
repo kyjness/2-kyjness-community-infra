@@ -33,12 +33,6 @@ resource "aws_acm_certificate_validation" "cf_cert" {
 # ALB(백엔드) HTTPS — ap-northeast-2 ACM 전용 (CloudFront용 us-east-1 인증서와 분리)
 # -----------------------------------------------------------------------------
 
-data "aws_route53_zone" "primary" {
-  name         = var.domain_name
-  private_zone = false
-  depends_on   = [aws_route53_zone.selected]
-}
-
 resource "aws_acm_certificate" "alb_api" {
   domain_name       = "api.${var.domain_name}"
   validation_method = "DNS"
@@ -54,7 +48,7 @@ resource "aws_route53_record" "alb_api_cert_validation" {
     }
   }
   allow_overwrite = true
-  zone_id         = data.aws_route53_zone.primary.zone_id
+  zone_id         = aws_route53_zone.selected.zone_id
   name            = each.value.name
   records         = [each.value.record]
   ttl             = 60
