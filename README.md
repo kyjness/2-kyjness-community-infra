@@ -1,8 +1,8 @@
 # PuppyTalk Infra
 
 반려견 커뮤니티 **PuppyTalk**의 인프라(IaC) 레포입니다. Terraform으로 **AWS ECS Fargate**
-운영 스택(1차 아키텍처)과 **EKS 대안 트랙**을 코드로 기술하고, 로컬 전체 스택은
-`docker-compose`로 재현합니다.
+운영 스택(1차 아키텍처)과 **EKS 대안 트랙**을 코드로 기술합니다.
+(로컬 개발 스택은 백엔드 레포로 이관 — 아래 "로컬 실행" 참고.)
 
 - 백엔드: [PuppyTalk Backend](https://github.com/kyjness/2-kyjness-community-be)
 - 프론트엔드: [PuppyTalk Frontend](https://github.com/kyjness/2-kyjness-community-fe)
@@ -132,62 +132,12 @@ flowchart TB
 
 ---
 
-## 로컬 개발 (Docker Compose)
+## 로컬 실행
 
-루트 `docker-compose.local.yml`로 전체 스택(Nginx + 백엔드 + 프론트 + PostgreSQL + Redis +
-MinIO)을 한 번에 띄웁니다.
-
-### 1. 레포 배치
-
-세 레포가 **같은 상위 폴더**에 있어야 빌드 컨텍스트가 맞습니다.
-
-```
-상위폴더/
-├── 2-kyjness-community-be/
-├── 2-kyjness-community-fe/
-└── 2-kyjness-community-infra/   ← 여기서 실행
-```
-
-### 2. 환경 변수
-
-```bash
-cd 2-kyjness-community-infra
-cp .env.example .env.local        # db · minio · backend 가 이 파일을 읽음 (.gitignore)
-```
-
-맞출 항목(자세한 키는 `.env.example`): `POSTGRES_*`, `MINIO_ROOT_*`, `DB_PASSWORD`,
-`JWT_SECRET_KEY`(32자 이상 랜덤), `STORAGE_BACKEND`·`S3_*`·`S3_PUBLIC_BASE_URL`.
-
-### 3. 기동 · 확인
-
-```bash
-docker compose -f docker-compose.local.yml up --build -d
-```
-
-백엔드 컨테이너 기동 시 `alembic upgrade head`가 자동 실행됩니다.
-
-| 확인 | URL |
-|------|-----|
-| 프론트 | http://localhost |
-| API | http://localhost/v1/ |
-| Swagger | http://localhost/v1/docs |
-| 헬스 | http://localhost/v1/health |
-
-호스트 포트: Nginx `80`, PostgreSQL `5432`, Redis `6379`, MinIO API `9000`·콘솔 `9001`.
-
-### 4. MinIO 버킷 공개 (이미지 Access Denied 방지)
-
-```bash
-docker exec minio mc alias set myminio http://localhost:9000 minioadmin minioadmin
-docker exec minio mc anonymous set download myminio/puppytalk   # 버킷명은 S3_BUCKET_NAME에 맞게
-```
-
-### 5. 종료
-
-```bash
-docker compose -f docker-compose.local.yml down       # 컨테이너만
-docker compose -f docker-compose.local.yml down -v     # 볼륨까지 초기화
-```
+로컬 개발 스택은 **백엔드 레포**로 이관했습니다(설정이 사실상 백엔드 것이라 앱과 함께 둠).
+`2-kyjness-community-be`에서 `docker compose up --build` → DB·Redis·MinIO와 함께 API가 `localhost:8000`.
+프론트는 `2-kyjness-community-fe`에서 `npm run dev`(vite 프록시가 `:8000`으로 붙음).
+자세한 절차는 각 레포 README를 참고하세요. 이 레포는 **AWS 운영 설계(IaC)** 에 집중합니다.
 
 ---
 
