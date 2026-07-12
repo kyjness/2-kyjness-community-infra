@@ -81,10 +81,11 @@ resource "aws_ecs_service" "be" {
     container_port   = 8000
   }
 
+  # 태스크는 프라이빗 app 서브넷에 배치 — 퍼블릭 IP 없음. 인바운드는 ALB만, egress는 NAT 경유.
   network_configuration {
-    subnets          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+    subnets          = [aws_subnet.private_app_1.id, aws_subnet.private_app_2.id]
     security_groups  = [aws_security_group.ecs_sg.id]
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   depends_on = [
