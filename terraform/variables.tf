@@ -14,12 +14,6 @@ variable "domain_name" {
   default = "puppytalk.shop"
 }
 
-variable "ssh_admin_cidrs" {
-  type        = list(string)
-  default     = []
-  description = "DB/Redis EC2 SSH(22) 허용 CIDR. 비우면 SSH 미개방(기본). 관리 시 [\"YOUR.IP/32\"]만 지정."
-}
-
 # EC2 user_data에서 postgres 비밀번호로 사용 + SSM SecureString(ssm.tf)으로 ECS에 주입
 variable "db_master_password" {
   type        = string

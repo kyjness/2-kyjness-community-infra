@@ -25,11 +25,11 @@ resource "aws_ecs_task_definition" "be" {
 
     environment = [
       # DB 및 Redis 접속 정보 (비밀번호는 secrets로 분리)
-      { name = "DB_HOST", value = aws_instance.db_server.private_ip },
+      { name = "DB_HOST", value = aws_db_instance.main.address },
       { name = "DB_PORT", value = "5432" },
-      { name = "DB_USER", value = "postgres" },
-      { name = "DB_NAME", value = "puppytalk" },
-      { name = "REDIS_URL", value = "redis://${aws_instance.db_server.private_ip}:6379/0" },
+      { name = "DB_USER", value = var.rds_master_username },
+      { name = "DB_NAME", value = var.rds_database_name },
+      { name = "REDIS_URL", value = "redis://${aws_elasticache_replication_group.main.primary_endpoint_address}:6379/0" },
 
       # S3 관련 설정
       { name = "STORAGE_BACKEND", value = "s3" },

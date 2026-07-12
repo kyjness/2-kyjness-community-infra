@@ -55,43 +55,4 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
-# DB/Redis EC2 (ECS SG에서만 5432/6379)
-resource "aws_security_group" "db_sg" {
-  name   = "${var.project_name}-db-sg"
-  vpc_id = aws_vpc.main.id
-
-  # Postgres (5432)
-  ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id] # ECS 컨테이너만 접속 가능
-  }
-
-  # Redis (6379)
-  ingress {
-    from_port       = 6379
-    to_port         = 6379
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id] # ECS 컨테이너만 접속 가능
-  }
-
-  # SSH (22) - 기본은 미개방. 관리가 필요하면 var.ssh_admin_cidrs에 관리자 IP/32만 지정.
-  dynamic "ingress" {
-    for_each = length(var.ssh_admin_cidrs) > 0 ? [1] : []
-    content {
-      description = "SSH admin access"
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = var.ssh_admin_cidrs
-    }
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
+# DB(RDS)·Redis(ElastiCache) SG는 각각 rds.tf·elasticache.tf에 정의 (data 티어, ecs_sg에서만 접근).
