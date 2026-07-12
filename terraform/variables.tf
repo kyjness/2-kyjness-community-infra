@@ -4,6 +4,12 @@ variable "project_name" {
   description = "리소스 Name 태그·이름 접두에 공통 사용"
 }
 
+variable "environment" {
+  type        = string
+  default     = "production"
+  description = "default_tags·리소스 구분용 환경 이름 (단일 환경 포트폴리오라 production 고정)"
+}
+
 variable "region" {
   type    = string
   default = "ap-northeast-2"
@@ -14,11 +20,11 @@ variable "domain_name" {
   default = "puppytalk.shop"
 }
 
-# EC2 user_data에서 postgres 비밀번호로 사용 + SSM SecureString(ssm.tf)으로 ECS에 주입
+# RDS 마스터 비밀번호. SSM SecureString(ssm.tf)에 저장 → ECS 태스크에 secrets.valueFrom로 주입
 variable "db_master_password" {
   type        = string
   sensitive   = true
-  description = "PostgreSQL postgres 사용자 비밀번호"
+  description = "RDS PostgreSQL 마스터 사용자 비밀번호"
 }
 
 variable "jwt_secret_key" {

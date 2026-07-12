@@ -1,7 +1,7 @@
 # 1. VPC 생성 (10.0.0.0/16 대역)
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true # EC2 도메인 접속을 위해 필수
+  enable_dns_hostnames = true # RDS·ElastiCache·VPC 엔드포인트의 프라이빗 DNS 해석에 필요
   enable_dns_support   = true
 
   tags = {

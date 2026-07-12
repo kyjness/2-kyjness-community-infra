@@ -98,6 +98,12 @@ flowchart TB
 > 한 갈래로 일원화**했습니다. `be_github_actions`는 AWS 스택 `apply` 시 활성화되는 CD 경로 —
 > 무료 라이브 데모 트랙은 BE 이미지를 GHCR→Fly로 배포하므로, 적용 전까지 이 롤은 휴면입니다.
 
+**이미지 태그 전략(판단)**: 현재 BE 롤은 `ecs:UpdateService`만 가지며, `:latest` 가변 태그를
+`--force-new-deployment`로 재배포하는 **단순 경로**입니다. 운영 정석은 **불변 SHA 태그 + 새 task
+def 리비전 등록**(즉시 롤백·배포 추적성)이며, 이 경우 `ecs:RegisterTaskDefinition`·`iam:PassRole`이
+추가로 필요합니다. 포트폴리오 범위에선 단순 경로를 유지하되, ECR 라이프사이클 정책(`ecr.tf`)으로
+`:latest` 재푸시가 남기는 dangling 이미지를 정리해 가변 태그의 비용 부작용만 상쇄했습니다.
+
 ---
 
 ## ECS vs EKS — 왜 둘 다 두었나 (판단 근거)
@@ -125,9 +131,16 @@ flowchart TB
     `terraform/`의 `rds_address`·`redis_primary_endpoint` output을 채워 연결.
   - `rollout-bluegreen`: **Argo Rollouts 블루그린**(active/preview) 대안 배포 전략.
 
+### 운영 성숙도 — 코드로 반영 (미적용)
+
+- **원격 상태**: `backend.tf`에 **S3(버저닝·SSE) + DynamoDB 락** 백엔드를 partial-config로 정의.
+  환경별 값은 `terraform init -backend-config=backend.hcl`로 주입(`backend.hcl.example` 참고),
+  이 레포는 apply하지 않으므로 검증은 `terraform init -backend=false`로 수행.
+- **공통 태그**: provider `default_tags`(`Project`·`Environment`·`ManagedBy`)로 전 리소스 태깅 → 비용 할당·거버넌스.
+- **의도적 비선택**: 단일 환경 포트폴리오라 `modules/`·워크스페이스 분리는 **하지 않음**(과잉 복잡도 배제).
+
 ### 실제 적용 시 전제 (미구현·서술)
 
-- **원격 상태**: 로컬 `tfstate` → **암호화 S3 백엔드 + DynamoDB 락**(팀 협업·상태 잠금·시크릿 보호).
 - **Redis in-transit TLS**: `transit_encryption_enabled=true` 시 `REDIS_URL`이 `rediss://`+auth_token 전제 → 앱 설정 연동 필요.
 
 ---
@@ -146,11 +159,11 @@ flowchart TB
 > ⚠️ 이 스택을 `apply` 하면 ALB·Fargate·**RDS·ElastiCache·NAT** 등이 **상시 과금**됩니다.
 > 설계 검토는 `validate`/`plan`까지만. 공개 라이브 데모는 무료 티어 트랙(be/fe 레포)을 씁니다.
 
-**AWS Provider `>= 5.40, < 6.0`**, 상태 파일은 로컬 `terraform.tfstate`(`.gitignore`).
+**AWS Provider `>= 5.40, < 6.0`**, 상태 백엔드는 `backend.tf`에 **S3 + DynamoDB 락**으로 정의(partial-config).
 
 > 🔐 `ssm.tf`·`rds.tf`가 시크릿(`jwt_secret_key`·`db_master_password`)을 관리하므로 그 값은
-> **`terraform.tfstate`에 평문 저장**됩니다. 상태 파일을 절대 커밋하지 말고(현재 `.gitignore`),
-> 원격 상태로 옮길 때는 **암호화 S3 백엔드(SSE) + 접근 제어**를 전제로 하세요.
+> **`tfstate`에 평문 저장**됩니다. 상태 파일을 절대 커밋하지 말고(현재 `.gitignore`), 원격 상태는
+> **암호화 S3 백엔드(SSE) + DynamoDB 락 + 접근 제어**를 전제로 합니다(`backend.tf`).
 
 ### 사전 준비
 
@@ -172,9 +185,10 @@ flowchart TB
 ```bash
 # 1차 스택 (ECS)
 cd terraform
-terraform init && terraform validate      # 구성 검사
-terraform plan                            # 변경 계획 (실계정 자격 필요)
-# terraform apply                         # (과금 주의)
+terraform init -backend=false && terraform validate   # 구성 검사 (백엔드 없이)
+# 실제 운영: terraform init -backend-config=backend.hcl # S3 원격 상태 연결
+terraform plan                                        # 변경 계획 (실계정 자격 필요)
+# terraform apply                                     # (과금 주의)
 
 # EKS 대안 트랙
 cd ../eks

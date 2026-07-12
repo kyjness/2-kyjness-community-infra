@@ -15,6 +15,9 @@ terraform.tfvars.json
 *.auto.tfvars
 *.auto.tfvars.json
 
+# Terraform backend partial-config 실제 값 (.example만 공개)
+backend.hcl
+
 # Terraform state/캐시/플랜 (커밋 금지)
 **/.terraform/*
 *.tfstate

@@ -12,7 +12,7 @@ resource "aws_ssm_parameter" "jwt_secret" {
 
 resource "aws_ssm_parameter" "db_password" {
   name        = "/${var.project_name}/db_password"
-  description = "PostgreSQL postgres 사용자 비밀번호 (EC2 user_data와 동일 값)"
+  description = "RDS PostgreSQL 마스터 비밀번호 (var.db_master_password와 동일 값)"
   type        = "SecureString"
   value       = var.db_master_password
 }

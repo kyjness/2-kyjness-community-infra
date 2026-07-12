@@ -1,0 +1,8 @@
+# S3 remote state backend — partial config 주입용 예시.
+# 실제 값으로 backend.hcl 을 만든 뒤: terraform init -backend-config=backend.hcl
+# (backend.hcl 자체는 커밋하지 않는다 — 계정·환경별 값)
+bucket         = "puppytalk-tfstate"
+key            = "terraform/aws/terraform.tfstate"
+region         = "ap-northeast-2"
+dynamodb_table = "puppytalk-tfstate-lock"
+encrypt        = true

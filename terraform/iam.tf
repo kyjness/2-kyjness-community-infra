@@ -18,31 +18,11 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
-# 표준 권한 연결 (이미지 다운로드 및 로그 기록 권한)
+# 표준 권한 연결 — ECR pull + 로그 스트림 생성/전송(logs:CreateLogStream·PutLogEvents)까지 포함.
+# 로그 그룹은 cloudwatch.tf가 미리 생성하므로 CreateLogGroup 권한은 불필요 → 커스텀 로그 정책 없음.
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-# ecsTaskExecutionRole에 로그 그룹 생성 권한 추가
-resource "aws_iam_role_policy" "ecs_task_execution_logs_policy" {
-  name = "${var.project_name}-ecs-logs-policy"
-  role = aws_iam_role.ecs_task_execution_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
 }
 
 # ECS가 태스크 기동 시 SSM SecureString 시크릿(ssm.tf)을 주입하려면 execution_role에 조회 권한 필요.
