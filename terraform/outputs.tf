@@ -1,5 +1,5 @@
 output "ecr_be_repository_url" {
-  description = "백엔드 ECR 리포지토리 URL (Jenkins/ECS 배포·Target 시 k8s.bak 참고)"
+  description = "백엔드 ECR 리포지토리 URL (ECS 태스크 정의 image 소스)"
   value       = aws_ecr_repository.be.repository_url
 }
 
