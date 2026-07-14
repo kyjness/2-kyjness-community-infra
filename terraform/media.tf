@@ -31,3 +31,23 @@ resource "aws_s3_bucket_policy" "media_policy" {
     }]
   })
 }
+# confirm되지 않은 presigned 업로드 잔존물 GC.
+# pending/ 객체는 DB 행이 없어 앱 sweeper가 지울 수 없다 — presign TTL 15분·업로드 직후
+# confirm 계약상 1일 넘게 남은 pending은 전부 미완료 잔존물이므로 버킷 수명주기로 만료.
+# (dev/CI는 minio-init의 mc ilm 등가 규칙 — 저장소 수명주기는 저장소 계층 책임)
+resource "aws_s3_bucket_lifecycle_configuration" "media_pending_gc" {
+  bucket = aws_s3_bucket.media.id
+
+  rule {
+    id     = "expire-pending-uploads"
+    status = "Enabled"
+
+    filter {
+      prefix = "media/pending/"
+    }
+
+    expiration {
+      days = 1
+    }
+  }
+}
