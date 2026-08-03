@@ -4,8 +4,8 @@
 코드로 기술합니다 — **1차: ECS Fargate 스택**(`terraform/`)과 **대안: 쿠버네티스(EKS) 트랙**(`eks/`).
 두 트랙은 **서로 독립된 root**이며, "왜 둘 다 두었나"는 아래 [ECS vs EKS 판단 근거](#5-ecs-vs-eks--왜-둘-다-두었나-판단-근거)에서 설명합니다.
 
-- 백엔드: [PuppyTalk Backend](https://github.com/kyjness/2-kyjness-community-be)
-- 프론트엔드: [PuppyTalk Frontend](https://github.com/kyjness/2-kyjness-community-fe)
+- 백엔드: [PuppyTalk Backend](https://github.com/kyjness/puppytalk-be)
+- 프론트엔드: [PuppyTalk Frontend](https://github.com/kyjness/puppytalk-fe)
 
 ---
 
@@ -24,7 +24,7 @@
 ## 2. 레포 구조
 
 ```text
-2-kyjness-community-infra/
+puppytalk-infra/
 ├── terraform/                    # 1차 스택: AWS ECS Fargate (단일 root)
 │   ├── provider.tf backend.tf    #  프로바이더·default_tags · S3+DynamoDB 원격 상태
 │   ├── variables.tf outputs.tf
@@ -256,8 +256,8 @@ SSM 연동)을 전제합니다.
 ## 7. 로컬 실행
 
 로컬 개발 스택은 **백엔드 레포**로 이관했습니다(설정이 사실상 백엔드 것이라 앱과 함께 둠).
-`2-kyjness-community-be`에서 `docker compose up --build` → DB·Redis·MinIO와 함께 API가 `localhost:8000`.
-프론트는 `2-kyjness-community-fe`에서 `npm run dev`(vite 프록시가 `:8000`으로 붙음).
+`puppytalk-be`에서 `docker compose up --build` → DB·Redis·MinIO와 함께 API가 `localhost:8000`.
+프론트는 `puppytalk-fe`에서 `npm run dev`(vite 프록시가 `:8000`으로 붙음).
 자세한 절차는 각 레포 README를 참고하세요. 이 레포는 **AWS 운영 설계(IaC)** 에 집중합니다.
 
 ---

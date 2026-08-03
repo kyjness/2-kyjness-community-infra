@@ -122,13 +122,13 @@ variable "elasticache_num_nodes" {
 # GitHub Actions OIDC: IAM Role Trust의 sub 클레임 (해당 레포 워크플로만 Assume 허용)
 variable "github_fe_oidc_subject" {
   type        = string
-  default     = "repo:kyjness/2-kyjness-community-fe:*"
+  default     = "repo:kyjness/puppytalk-fe:*"
   description = "token.actions.githubusercontent.com:sub StringLike 패턴 (브랜치·환경 제한 시 :ref:refs/heads/main 등으로 좁힘)"
 }
 
 variable "github_be_oidc_subject" {
   type        = string
-  default     = "repo:kyjness/2-kyjness-community-be:*"
+  default     = "repo:kyjness/puppytalk-be:*"
   description = "BE 레포 GitHub Actions OIDC sub 패턴 (ECR push·ECS 배포 롤 Assume 허용 대상)"
 }
 
