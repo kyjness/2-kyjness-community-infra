@@ -14,10 +14,13 @@
 | 트랙 | 정체 | 위치 | 상태 |
 |------|------|------|------|
 | **AWS 운영 설계** | 프라이빗 3-tier · ALB · ECS Fargate · RDS · ElastiCache · CloudFront 등 운영 등급 토폴로지 | 이 레포 `terraform/` · `eks/` | **설계 산출물** — 상시 과금(ALB·Fargate·RDS·NAT)을 피하려 **`apply` 하지 않음** |
-| **라이브 데모** | 실제 공개 URL로 돌아가는 데모 | be/fe 레포 | 무료 티어(Vercel·Fly·Neon·Upstash·R2)로 별도 구동 *(구성 예정)* |
+| **라이브 데모** | 실제 공개 URL로 돌아가는 데모 | 이 레포 `demo/` | **적용 중** — Lightsail 한 대 + S3/CloudFront, 월 ~$12 ([9장](#9-라이브-데모-트랙-demo--적용-중)) |
 
 > Terraform 스택은 "이렇게 운영 등급으로 설계했다"를 코드로 증명하는 산출물이고(무료·미적용),
-> 비용 0의 공개 데모는 무료 티어에서 별도로 돌립니다. **설계 깊이와 실제 과금은 별개 축**입니다.
+> 공개 데모는 같은 앱을 **쇼케이스 등급**으로 축소해 돌립니다. **설계 깊이와 실제 과금은 별개 축**입니다.
+>
+> 두 트랙은 등급이 다릅니다 — 운영 설계는 HA·자동 백업·무중단 배포를 갖추고, 데모는 그것들을
+> 의도적으로 포기해 비용을 택합니다. 그 판단의 근거는 백엔드 [ADR 0016](https://github.com/kyjness/puppytalk-be/blob/main/docs/adr/0016-demo-deployment-topology.md)에 있습니다.
 
 ---
 
@@ -38,14 +41,22 @@ puppytalk-infra/
 │   ├── ssm.tf iam.tf iam_github_oidc.tf     #  시크릿 · 권한 · GitHub OIDC
 │   ├── sns.tf cloudwatch.tf      #  알림 · 로그
 │   └── *.example                 #  terraform.tfvars.example · backend.hcl.example
-└── eks/                          # 대안 트랙: 쿠버네티스 (별도 root)
+├── eks/                          # 대안 트랙: 쿠버네티스 (별도 root)
+│   ├── provider.tf variables.tf outputs.tf
+│   ├── vpc.tf eks.tf irsa.tf     #  VPC 모듈 · EKS 모듈 · Cluster Autoscaler IRSA
+│   └── k8s/
+│       ├── base/                 #  Deployment · Service · HPA · kustomization
+│       ├── overlays/prod-seoul/  #  환경 오버레이(ConfigMap · GHCR 이미지 치환)
+│       └── rollout-bluegreen/    #  Argo Rollouts 블루/그린(대안 배포 전략)
+└── demo/                         # 라이브 데모: 실제 적용 중인 최소 스택 (별도 root)
     ├── provider.tf variables.tf outputs.tf
-    ├── vpc.tf eks.tf irsa.tf     #  VPC 모듈 · EKS 모듈 · Cluster Autoscaler IRSA
-    └── k8s/
-        ├── base/                 #  Deployment · Service · HPA · kustomization
-        ├── overlays/prod-seoul/  #  환경 오버레이(ConfigMap · GHCR 이미지 치환)
-        └── rollout-bluegreen/    #  Argo Rollouts 블루/그린(대안 배포 전략)
+    ├── lightsail.tf              #  인스턴스 · 고정 IP · 방화벽 (VPC·SG 불필요)
+    ├── media.tf frontend.tf      #  업로드 S3 · 프론트 S3 (둘 다 비공개)
+    ├── cloudfront.tf acm.tf dns.tf  #  CDN · 인증서 · Route 53
+    └── iam_app.tf iam_github_oidc.tf  #  앱 S3 자격 · FE 배포 OIDC 롤
 ```
+
+세 root의 관계: `terraform/`(운영 설계 · 미적용) · `eks/`(대안 설계 · 미적용) · `demo/`(**적용 중**).
 
 ---
 
@@ -145,7 +156,8 @@ flowchart TB
 
 > 이전에는 Jenkins EC2가 BE 배포를 담당했으나, 상시 과금·이중 CD 경로를 없애고 **GitHub OIDC
 > 한 갈래로 일원화**했습니다. `be_github_actions`는 AWS 스택 `apply` 시 활성화되는 CD 경로 —
-> 무료 라이브 데모 트랙은 BE 이미지를 GHCR→Fly로 배포하므로, 적용 전까지 이 롤은 휴면입니다.
+> 라이브 데모 트랙([9장](#9-라이브-데모-트랙-demo--적용-중))은 GHCR 이미지를 Lightsail로 배포하므로,
+> 적용 전까지 이 롤은 휴면입니다.
 
 **이미지 태그 전략(판단)**: 현재 BE 롤은 `ecs:UpdateService`만 가지며, `:latest` 가변 태그를
 `--force-new-deployment`로 재배포하는 **단순 경로**입니다. 운영 정석은 **불변 SHA 태그 + 새 task
@@ -306,3 +318,94 @@ kubectl kustomize k8s/overlays/prod-seoul              # 매니페스트 렌더 
 
 - 적용 시 **Route 53** 호스팅 영역 NS를 도메인 등록업체에 위임해야 `api.<domain>`·apex·ACM 검증이 동작.
 - 출력: `terraform output` (`ecr_be_repository_url`·`rds_address`·`redis_primary_endpoint`·FE/BE OIDC 롤 ARN 등).
+
+---
+
+## 9. 라이브 데모 트랙 (`demo/` — 적용 중)
+
+같은 앱을 **쇼케이스 등급**으로 축소해 실제로 돌리는 스택입니다. 위의 운영 설계와 달리 이 root는
+`apply` 합니다.
+
+```mermaid
+flowchart LR
+    user([방문자])
+
+    subgraph edge["Route 53 · ACM"]
+        cf["CloudFront + OAC<br/>apex: 정적 · /media/*"]
+    end
+
+    subgraph ls["Lightsail 2GB (api 서브도메인)"]
+        caddy["Caddy<br/>TLS 종단 · 자동 갱신"]
+        api["API<br/>gunicorn x2"]
+        worker["Celery 워커"]
+        pg[("PostgreSQL<br/>컨테이너 + 볼륨")]
+        redis[("Redis<br/>컨테이너")]
+    end
+
+    s3fe[["S3 프론트<br/>비공개"]]
+    s3media[["S3 미디어<br/>비공개 · presign 업로드"]]
+
+    user -->|apex| cf
+    user -->|api.| caddy
+    cf --> s3fe
+    cf -->|/media/*| s3media
+    caddy --> api
+    api --> pg
+    api --> redis
+    worker --> pg
+    worker --> redis
+    api -->|presigned POST 발급| s3media
+```
+
+### 무엇을 쓰지 않는가
+
+ALB·NAT·RDS·ElastiCache·ECS가 **없습니다.** 이것들이 운영 스택 비용의 대부분이고, 트래픽이 0인
+데모에서는 정당화되지 않습니다. 대신 ALB 자리는 Caddy가, RDS·ElastiCache 자리는 컨테이너가
+맡습니다. 잃는 것은 성능이 아니라 HA·자동 백업·무중단 배포이며, 그 판단은
+[ADR 0016](https://github.com/kyjness/puppytalk-be/blob/main/docs/adr/0016-demo-deployment-topology.md)에 적혀 있습니다.
+
+| 항목 | 월 |
+|---|---|
+| Lightsail 2GB (고정 IP·디스크 60GB·전송 3TB 포함) | ~$10~12 |
+| Route 53 호스팅 존 | $0.5 |
+| S3 + CloudFront (월 1TB 상시 무료) | ~$0~1 |
+| **합계** | **~$12~14** (운영 스택 apply 대비 약 1/12) |
+
+### 적용 절차
+
+```bash
+cd demo
+cp terraform.tfvars.example terraform.tfvars   # SSH 공개키 입력
+terraform init && terraform validate
+terraform apply                                # (과금 시작 지점)
+```
+
+1. `terraform output name_servers` 의 네임서버 4개를 도메인 등록업체에 위임합니다.
+   **위임이 끝나야 ACM 검증이 통과**하므로, apply가 인증서 단계에서 대기하면 정상입니다.
+2. 앱이 쓸 S3 액세스 키를 발급합니다 — terraform이 만들지 않는 이유는 tfstate에 평문으로
+   남기지 않기 위해서입니다.
+   ```bash
+   aws iam create-access-key --user-name "$(terraform output -raw app_iam_user_name)"
+   ```
+3. 백엔드 레포의 배포 파일을 서버로 올리고 기동합니다.
+   ```bash
+   scp compose.prod.yml Caddyfile scripts/backup_db.sh .env.prod \
+       ec2-user@$(terraform output -raw server_ip):/opt/puppytalk/
+   ssh ec2-user@$(terraform output -raw server_ip) \
+       'cd /opt/puppytalk && docker compose --env-file .env.prod -f compose.prod.yml up -d'
+   ```
+4. 데모 데이터를 심습니다.
+   ```bash
+   docker compose --env-file .env.prod -f compose.prod.yml exec backend python -m scripts.seed_demo
+   ```
+5. GitHub Secrets를 채웁니다 — FE: `AWS_ROLE_ARN`·`FRONTEND_BUCKET`·
+   `CLOUDFRONT_DISTRIBUTION_ID`·`VITE_API_BASE_URL`, BE: `DEPLOY_HOST`·`DEPLOY_USER`·
+   `DEPLOY_SSH_KEY`·`DEPLOY_KNOWN_HOSTS`·`HEALTH_URL`.
+
+### 내리기 · 잠시 멈추기
+
+- 완전히 내리기: `terraform destroy` → 과금 0. 다시 올리려면 `apply`(CloudFront 배포 때문에 10~20분).
+- **잠시 정지는 불가합니다.** Lightsail은 인스턴스를 stop해도 요금이 청구됩니다(EC2와 다른 점).
+  쉬려면 스냅샷을 만들고 인스턴스를 지웠다가 복원해야 합니다.
+- DB는 컨테이너 볼륨이 유일한 사본이라, `backup_db.sh`가 하루 한 번 pg_dump를 S3
+  `backup/` 로 올립니다(14일 후 자동 만료).

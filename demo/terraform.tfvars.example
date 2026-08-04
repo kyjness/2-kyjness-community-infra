@@ -1,0 +1,14 @@
+# cp terraform.tfvars.example terraform.tfvars 후 값을 채운다.
+# terraform.tfvars 는 .gitignore 대상이지만, 이 root는 애초에 시크릿을 받지 않는다
+# (JWT 키·DB 비밀번호·S3 액세스 키는 전부 서버의 .env.prod 로만 들어간다).
+
+# 배포·운영용 SSH 공개키. 개인키는 GitHub Secrets(DEPLOY_SSH_KEY)에 넣는다.
+#   ssh-keygen -t ed25519 -C "puppytalk-deploy" -f ~/.ssh/puppytalk_deploy
+ssh_public_key = "ssh-ed25519 AAAA... puppytalk-deploy"
+
+# 22번을 열어줄 대역. 기본값은 ["0.0.0.0/0"] — CD가 GitHub 러너에서 SSH로 들어오기 때문이다.
+# 배포를 손으로만 할 거라면 내 IP로 좁힌다.
+# ssh_allowed_cidrs = ["203.0.113.7/32"]
+
+# domain_name        = "puppytalk.shop"
+# lightsail_bundle_id = "small_3_0"   # 2GB. docsuri처럼 검색엔진이 붙으면 medium_3_0(4GB)
