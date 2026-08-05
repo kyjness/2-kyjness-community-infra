@@ -396,7 +396,7 @@ terraform apply                                # (과금 시작 지점)
    ```
 4. 데모 데이터를 심습니다.
    ```bash
-   docker compose --env-file .env.prod -f compose.prod.yml exec backend python -m scripts.seed_demo
+   docker compose --env-file .env.prod -f compose.prod.yml exec backend python -m app.scripts.seed_demo
    ```
 5. GitHub Secrets를 채웁니다 — FE: `AWS_ROLE_ARN`·`FRONTEND_BUCKET`·
    `CLOUDFRONT_DISTRIBUTION_ID`·`VITE_API_BASE_URL`, BE: `DEPLOY_HOST`·`DEPLOY_USER`·
