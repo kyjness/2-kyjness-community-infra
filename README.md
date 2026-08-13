@@ -20,7 +20,7 @@
 > 공개 데모는 같은 앱을 **쇼케이스 등급**으로 축소해 돌립니다. **설계 깊이와 실제 과금은 별개 축**입니다.
 >
 > 두 트랙은 등급이 다릅니다 — 운영 설계는 HA·자동 백업·무중단 배포를 갖추고, 데모는 그것들을
-> 의도적으로 포기해 비용을 택합니다. 그 판단의 근거는 백엔드 [ADR 0016](https://github.com/kyjness/puppytalk-be/blob/main/docs/adr/0016-demo-deployment-topology.md)에 있습니다.
+> 의도적으로 포기해 비용을 택합니다. 그 판단의 근거는 백엔드 [ADR 0017](https://github.com/kyjness/puppytalk-be/blob/main/docs/adr/0017-demo-deployment-topology.md)에 있습니다.
 
 ---
 
@@ -362,7 +362,7 @@ flowchart LR
 ALB·NAT·RDS·ElastiCache·ECS가 **없습니다.** 이것들이 운영 스택 비용의 대부분이고, 트래픽이 0인
 데모에서는 정당화되지 않습니다. 대신 ALB 자리는 Caddy가, RDS·ElastiCache 자리는 컨테이너가
 맡습니다. 잃는 것은 성능이 아니라 HA·자동 백업·무중단 배포이며, 그 판단은
-[ADR 0016](https://github.com/kyjness/puppytalk-be/blob/main/docs/adr/0016-demo-deployment-topology.md)에 적혀 있습니다.
+[ADR 0017](https://github.com/kyjness/puppytalk-be/blob/main/docs/adr/0017-demo-deployment-topology.md)에 적혀 있습니다.
 
 | 항목 | 월 |
 |---|---|
