@@ -30,7 +30,7 @@ resource "aws_security_group" "redis" {
 
 resource "aws_elasticache_replication_group" "main" {
   replication_group_id = "${var.project_name}-redis"
-  description          = "PuppyTalk Redis (cache + Celery broker)"
+  description          = "PuppyTalk Redis (cache + worker queue broker)"
 
   engine         = "redis"
   engine_version = var.elasticache_engine_version

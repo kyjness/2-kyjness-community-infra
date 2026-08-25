@@ -1,4 +1,4 @@
-# 백엔드 전부가 이 인스턴스 한 대에 있다 — Caddy(TLS 종단) · API · Celery 워커 ·
+# 백엔드 전부가 이 인스턴스 한 대에 있다 — Caddy(TLS 종단) · API · 워커(arq) ·
 # PostgreSQL · Redis가 docker compose로 함께 뜬다(puppytalk-be/compose.prod.yml).
 #
 # EC2가 아니라 Lightsail인 이유: 고정 IP·디스크·전송이 요금에 포함돼 월 비용이 절반이고,

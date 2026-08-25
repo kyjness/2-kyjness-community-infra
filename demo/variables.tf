@@ -21,7 +21,7 @@ variable "lightsail_bundle_id" {
   default     = "small_3_0"
   description = <<-EOT
     인스턴스 플랜. small_3_0 = 2GB RAM · 2 vCPU · SSD 60GB · 전송 3TB.
-    이 스택(Caddy·API·Celery·PostgreSQL·Redis)의 상주 메모리가 약 1.1GB라 2GB + swap이면 충분하다.
+    이 스택(Caddy·API·워커·PostgreSQL·Redis)의 상주 메모리가 약 1.1GB라 2GB + swap이면 충분하다.
     micro_3_0(1GB)은 마이그레이션·시드 중 OOM 위험이 있어 쓰지 않는다.
   EOT
 }

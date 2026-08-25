@@ -25,6 +25,8 @@ backend.hcl
 crash.log
 crash.*.log
 *.tfplan
+# `terraform plan -out=tfplan` 의 기본 이름 — 확장자가 없어 위 패턴에 안 걸린다.
+tfplan
 *.tfstate.backup
 .terraform/
 

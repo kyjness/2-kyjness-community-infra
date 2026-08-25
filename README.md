@@ -337,7 +337,7 @@ flowchart LR
     subgraph ls["Lightsail 2GB (api 서브도메인)"]
         caddy["Caddy<br/>TLS 종단 · 자동 갱신"]
         api["API<br/>gunicorn x2"]
-        worker["Celery 워커"]
+        worker["워커 (arq)"]
         pg[("PostgreSQL<br/>컨테이너 + 볼륨")]
         redis[("Redis<br/>컨테이너")]
     end
