@@ -1,5 +1,8 @@
 # PuppyTalk Infra
 
+> 🐕 **라이브 데모 — [puppytalk.shop](https://puppytalk.shop)**
+> API: [api.puppytalk.shop/v1/docs](https://api.puppytalk.shop/v1/docs) · 데모 계정은 로그인 화면의 *"데모 계정으로 둘러보기"*
+
 반려견 커뮤니티 **PuppyTalk**의 인프라(IaC) 레포입니다. Terraform으로 AWS 운영 등급 토폴로지를
 코드로 기술합니다 — **1차: ECS Fargate 스택**(`terraform/`)과 **대안: 쿠버네티스(EKS) 트랙**(`eks/`).
 두 트랙은 **서로 독립된 root**이며, "왜 둘 다 두었나"는 아래 [ECS vs EKS 판단 근거](#5-ecs-vs-eks--왜-둘-다-두었나-판단-근거)에서 설명합니다.
