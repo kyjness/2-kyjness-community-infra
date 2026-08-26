@@ -79,9 +79,20 @@ variable "docker_compose_version" {
 # --- GitHub Actions OIDC (프론트 배포 전용) ---
 variable "github_fe_oidc_subject" {
   type        = string
-  default     = "repo:kyjness/puppytalk-fe:ref:refs/heads/main"
+  default     = "repo:kyjness/puppytalk-fe:*"
   description = <<-EOT
-    이 subject를 가진 워크플로만 FE 배포 롤을 맡을 수 있다.
+    이 subject 패턴에 맞는 워크플로만 FE 배포 롤을 맡을 수 있다.
+
+    `ref:refs/heads/main`으로 좁혔더니 **수동 실행(workflow_dispatch)이 막혔다.** GitHub이
+    그때 발급하는 sub는 `ref:...` 형태가 아니라서다. 워크플로는 `workflow_dispatch`를 허용하는데
+    IAM이 거부해 둘이 어긋나 있었고, 첫 배포에서 드러났다 —
+    `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+
+    최초 배포·긴급 재배포에는 수동 트리거가 필요하므로 저장소 단위(`:*`)로 넓힌다. 이 저장소는
+    공개지만 **포크의 워크플로는 이 토큰을 못 받는다**(GitHub이 sub에 원본 저장소를 넣는다).
+    남는 것은 "이 저장소의 어느 브랜치에서든 배포 롤을 맡을 수 있다"이고, 롤 권한 자체가
+    프론트 버킷 쓰기 + CloudFront 무효화로 한정돼 있어 수용한다.
+
     백엔드 배포는 Lightsail에 IAM 롤을 붙일 수 없어 SSH로 하며, 그래서 BE용 OIDC 롤은 없다.
   EOT
 }
