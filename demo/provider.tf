@@ -23,7 +23,8 @@ locals {
 }
 
 provider "aws" {
-  region = var.region
+  region  = var.region
+  profile = var.aws_profile
 
   default_tags {
     tags = local.common_tags
@@ -32,8 +33,9 @@ provider "aws" {
 
 # CloudFront가 붙일 인증서는 반드시 us-east-1에 있어야 한다.
 provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
+  alias   = "us_east_1"
+  region  = "us-east-1"
+  profile = var.aws_profile
 
   default_tags {
     tags = local.common_tags

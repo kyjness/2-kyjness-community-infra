@@ -9,6 +9,17 @@ variable "region" {
   default = "ap-northeast-2"
 }
 
+variable "aws_profile" {
+  type        = string
+  default     = "puppytalk"
+  description = <<-EOT
+    자격증명 프로필(~/.aws/credentials). 기본값을 두는 이유는 이 워크스테이션에 다른 계정
+    프로필이 여럿 있고 그중 `default`가 **다른 조직의 SSO 계정**이기 때문이다 — 지정하지 않으면
+    기본 자격증명 체인이 그쪽을 집어 데모가 엉뚱한 계정에 만들어진다.
+    다른 머신에서 이름이 다르면 `-var aws_profile=...`로 덮는다.
+  EOT
+}
+
 variable "domain_name" {
   type        = string
   default     = "puppytalk.shop"
