@@ -79,7 +79,12 @@ variable "docker_compose_version" {
 # --- GitHub Actions OIDC (프론트 배포 전용) ---
 variable "github_fe_oidc_subject" {
   type        = string
-  default     = "repo:kyjness/puppytalk-fe:*"
+  # GitHub이 이 저장소에 붙이는 sub prefix는 불변 ID를 포함한 형식이다:
+  #   repo:kyjness@173899308/puppytalk-fe@1138779889:...
+  # (`GET /repos/{owner}/{repo}/actions/oidc/customization/sub` 의 sub_claim_prefix)
+  # 그래서 `repo:kyjness/puppytalk-fe:*` 로는 매칭되지 않는다 — 소유자·저장소가 개명돼도
+  # 깨지지 않도록 ID를 그대로 박는다.
+  default = "repo:kyjness@173899308/puppytalk-fe@1138779889:*"
   description = <<-EOT
     이 subject 패턴에 맞는 워크플로만 FE 배포 롤을 맡을 수 있다.
 
